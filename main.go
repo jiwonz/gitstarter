@@ -20,7 +20,6 @@ func deleteDir(dirPath string) {
 func runCommand(command string, args ...string) error {
 	cmd := exec.Command(command, args...)
 
-	// Redirect the command's output to the current process's standard output
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
@@ -142,24 +141,18 @@ func initGitWithPrompt(dirPath *string) (int, string) {
 }
 
 func main() {
-	// Access command-line arguments
 	args := os.Args
 
-	// Get the name of the executable (the first argument, index 0)
 	executableName := filepath.Base(args[0])
 
-	// Ensure that at least one command-line argument is provided
 	if len(args) < 2 {
 		fmt.Printf("Usage: %s <command>\n\n", executableName)
 		fmt.Println("init <directory:optional>    ", "Init git with prompt")
 		return
 	}
 
-	// Access the second argument (index 1), which is "[somecommand]" in your example
 	command := args[1]
-	//fmt.Printf("You provided the command: %s\n", command)
 
-	// You can perform actions based on the command here
 	if command == "init" {
 		var status int
 		var deleteAfterError string
