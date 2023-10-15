@@ -5,4 +5,4 @@ gitstarter
 gitstarter init <directory:optional>
 ```
 ## Installation
-Just [download the release file](https://github.com/jiwonz/gitstarter/releases/tag/v0.0.1) for your OS environment, and we recommend putting it in a bin folder in your PATH
+Just [download the release file](https://github.com/jiwonz/gitstarter/releases/tag/v0.0.1) for your OS environment, and I recommend putting it in a bin folder in your PATH
