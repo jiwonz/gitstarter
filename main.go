@@ -8,6 +8,15 @@ import (
 	"strings"
 )
 
+func deleteDir(dirPath string) {
+	err := os.RemoveAll(dirPath)
+	if err != nil {
+		fmt.Println("Error:", err)
+	} else {
+		fmt.Println("Directory deleted:", dirPath)
+	}
+}
+
 func runCommand(command string, args ...string) error {
 	cmd := exec.Command(command, args...)
 
@@ -30,36 +39,55 @@ func getCurrentBranch() (string, error) {
 	return strings.TrimSpace(string(output)), nil
 }
 
-func initGitWithPrompt(dirPath *string) {
+func initGitWithPrompt(dirPath *string) (int, string) {
+	var workingDirPath string
+	currentDir, err := os.Getwd()
+	if err != nil {
+		fmt.Println("Error:", err)
+		return 0, ""
+	}
 	if dirPath == nil {
-		err := runCommand("git", "init")
+		absolutePath, err := filepath.Abs(".git")
 		if err != nil {
 			fmt.Println("Error:", err)
+			return 0, ""
+		}
+		workingDirPath = absolutePath
+		err = runCommand("git", "init")
+		if err != nil {
+			fmt.Println("Error:", err)
+			return 0, workingDirPath
 		}
 	} else {
+		workingDirPath = filepath.Dir(currentDir)
 		err := runCommand("git", "init", *dirPath)
 		if err != nil {
 			fmt.Println("Error:", err)
+			return 0, workingDirPath
 		}
 		err = os.Chdir(*dirPath)
 		if err != nil {
 			fmt.Println("Error changing directory:", err)
+			return 0, workingDirPath
 		}
 	}
 	var branchName string
 	fmt.Print("branch name: (main) ")
 	fmt.Scanln(&branchName)
+	if branchName == "" {
+		branchName = "main"
+	}
 
 	currentBranch, err := getCurrentBranch()
 	if err != nil {
 		fmt.Println("Error:", err)
-		return
+		return 0, workingDirPath
 	}
 
 	err = runCommand("git", "branch", "-m", currentBranch, branchName)
 	if err != nil {
 		fmt.Println("Error:", err)
-		return
+		return 0, workingDirPath
 	}
 
 	var remoteURL string
@@ -67,8 +95,7 @@ func initGitWithPrompt(dirPath *string) {
 	fmt.Scanln(&remoteURL)
 	fmt.Println()
 	if remoteURL == "" {
-		fmt.Println("gitstarter finish. enjoy your git!")
-		return
+		return 1, workingDirPath
 	} else {
 		var remoteName string
 		fmt.Print("remote name: (origin) ")
@@ -79,7 +106,7 @@ func initGitWithPrompt(dirPath *string) {
 			err = runCommand("git", "remote", "add", remoteName, remoteURL)
 			if err != nil {
 				fmt.Println("Error:", err)
-				return
+				return 0, workingDirPath
 			}
 		}
 	}
@@ -97,20 +124,21 @@ func initGitWithPrompt(dirPath *string) {
 			err = runCommand("git", "add", ".")
 			if err != nil {
 				fmt.Println("Error:", err)
-				return
+				return 0, workingDirPath
 			}
 			err = runCommand("git", "commit", "-m", commitMessage)
 			if err != nil {
 				fmt.Println("Error:", err)
-				return
+				return 0, workingDirPath
 			}
 			err = runCommand("git", "push", "--set-upstream", commitMessage)
 			if err != nil {
 				fmt.Println("Error:", err)
-				return
+				return 0, workingDirPath
 			}
 		}
 	}
+	return 1, workingDirPath
 }
 
 func main() {
@@ -123,7 +151,7 @@ func main() {
 	// Ensure that at least one command-line argument is provided
 	if len(args) < 2 {
 		fmt.Printf("Usage: %s <command>\n\n", executableName)
-		fmt.Printf("%-12s%s\n", "init <directory:optional>", "Init git with prompt")
+		fmt.Println("init <directory:optional>    ", "Init git with prompt")
 		return
 	}
 
@@ -133,10 +161,19 @@ func main() {
 
 	// You can perform actions based on the command here
 	if command == "init" {
+		var status int
+		var deleteAfterError string
 		if len(args) < 3 {
-			initGitWithPrompt(nil)
-			return
+			status, deleteAfterError = initGitWithPrompt(nil)
+		} else {
+			status, deleteAfterError = initGitWithPrompt(&args[2])
 		}
-		initGitWithPrompt(&args[2])
+		if status == 0 {
+			if deleteAfterError != "" {
+				deleteDir(deleteAfterError)
+			}
+		} else {
+			fmt.Println("gitstarter: successfully finished. enjoy your git!")
+		}
 	}
 }
