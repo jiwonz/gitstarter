@@ -90,16 +90,14 @@ func initGitWithPrompt(dirPath *string) (int, string) {
 	}
 
 	var remoteURL string
-	fmt.Print("remote url: (press enter to skip [setting remote]) ")
+	fmt.Print("remote url: (press enter to skip) ")
 	fmt.Scanln(&remoteURL)
-	fmt.Println()
 	if remoteURL == "" {
 		return 1, workingDirPath
 	} else {
 		var remoteName string
 		fmt.Print("remote name: (origin) ")
 		fmt.Scanln(&remoteName)
-		fmt.Println()
 		if remoteName == "" {
 			remoteName = "origin"
 			err = runCommand("git", "remote", "add", remoteName, remoteURL)
@@ -111,14 +109,12 @@ func initGitWithPrompt(dirPath *string) (int, string) {
 	}
 
 	var doAddAndPush string
-	fmt.Print("add & push whole files? (y/n): (press enter to skip [add & push]) ")
+	fmt.Print("add & push whole files? (y/n): (n) ")
 	fmt.Scanln(&doAddAndPush)
-	fmt.Println()
 	if doAddAndPush == "y" {
 		var commitMessage string
-		fmt.Print("commit message: (press enter to cancel [add & push]) ")
+		fmt.Print("commit message: (press enter to cancel) ")
 		fmt.Scanln(&commitMessage)
-		fmt.Println()
 		if commitMessage != "" {
 			err = runCommand("git", "add", ".")
 			if err != nil {
