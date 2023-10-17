@@ -121,7 +121,7 @@ func initGitWithPrompt(dirPath *string) (int, string) {
 				fmt.Println("Error:", err)
 				return 0, workingDirPath
 			}
-			err = runCommand("git", "commit", "-m", commitMessage)
+			err = runCommand("git", "commit", fmt.Sprintf("-am \"%s\"", commitMessage))
 			if err != nil {
 				fmt.Println("Error:", err)
 				return 0, workingDirPath
