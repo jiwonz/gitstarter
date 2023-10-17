@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"os/exec"
@@ -89,13 +90,14 @@ func initGitWithPrompt(dirPath *string) (int, string) {
 		return 0, workingDirPath
 	}
 
+	var remoteName string
+
 	var remoteURL string
 	fmt.Print("remote url: (press enter to skip) ")
 	fmt.Scanln(&remoteURL)
 	if remoteURL == "" {
 		return 1, workingDirPath
 	} else {
-		var remoteName string
 		fmt.Print("remote name: (origin) ")
 		fmt.Scanln(&remoteName)
 		if remoteName == "" {
@@ -112,25 +114,29 @@ func initGitWithPrompt(dirPath *string) (int, string) {
 	fmt.Print("add & push whole files? (y/n): (n) ")
 	fmt.Scanln(&doAddAndPush)
 	if doAddAndPush == "y" {
-		var commitMessage string
 		fmt.Print("commit message: (press enter to cancel) ")
-		fmt.Scanln(&commitMessage)
-		if commitMessage != "" {
+		scanner := bufio.NewScanner(os.Stdin)
+		if scanner.Scan() {
+			commitMessage := scanner.Text()
+			fmt.Printf("\ncommitMessage DEBUG: %s\n\n", commitMessage)
+
 			err = runCommand("git", "add", ".")
 			if err != nil {
 				fmt.Println("Error:", err)
 				return 0, workingDirPath
 			}
-			err = runCommand("git", "commit", fmt.Sprintf("-am \"%s\"", commitMessage))
+			err = runCommand("git", "commit", fmt.Sprintf("-am %s", commitMessage))
 			if err != nil {
 				fmt.Println("Error:", err)
 				return 0, workingDirPath
 			}
-			err = runCommand("git", "push", "--set-upstream", commitMessage)
+			err = runCommand("git", "push", "--set-upstream", remoteName, branchName)
 			if err != nil {
 				fmt.Println("Error:", err)
 				return 0, workingDirPath
 			}
+		} else {
+
 		}
 	}
 	return 1, workingDirPath
